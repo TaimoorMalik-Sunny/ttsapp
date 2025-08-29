@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Wallet, UserPlus, Users, Building2 } from 'lucide-react'
 import { useEffect } from 'react'
+import LogoutButton from '@/components/logout-button'
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -64,6 +65,18 @@ useEffect(() => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+      {/* <div className='p-2 '>
+      <div className="flex items-center gap-10">
+          <span>Welcome, {session.user?.name}</span>
+          <LogoutButton />
+        </div>
+    </div> */}
+    <div className='p-2'>
+         <div className="flex justify-between items-center">
+             <span>Welcome, {session.user?.name}</span> 
+             <LogoutButton /> 
+             </div> 
+             </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {actions.map((action, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">

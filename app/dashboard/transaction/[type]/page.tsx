@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AuthProvider from '@/components/auth-provider';
+import React from 'react'
 
 interface Customer {
   phoneNumber: string
@@ -16,7 +17,7 @@ interface Customer {
   cnic: string
 }
 
-export default function TransactionPage({ params }: { params: { type: string } }) {
+export default function TransactionPage({ params }: { params: Promise<{ type: string }> })  {
   const [searchTerm, setSearchTerm] = useState('')
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [sendingAmount, setSendingAmount] = useState('')
@@ -27,6 +28,8 @@ export default function TransactionPage({ params }: { params: { type: string } }
   const { data: session } = useSession()
   const router = useRouter()
 
+  const unwrappedParams = React.use(params)
+  const { type } = unwrappedParams
 //   useEffect(() => {
 //     if (!session) {
 //       router.push('/login')
@@ -85,7 +88,7 @@ useEffect(() => {
           receivingAmount: parseFloat(receivingAmount),
           receiverInfo,
           operator,
-          type: params.type,
+          type: (await params).type,
           userEmail: session.user?.email,
           userId: (session.user as any).id,
         }),
@@ -103,20 +106,43 @@ useEffect(() => {
     }
   }
 
+
+  const getTitle = () => {
+    switch (type) {
+      case 'own_wallet':
+        return 'Own Wallet Transaction'
+      case 'other_wallet':
+        return 'Other Wallet Transaction'
+      case 'bank_account':
+        return 'Bank Account Transaction'
+      default:
+        return 'Transaction'
+    }
+  }
+  const getCardDescription= () => {
+    switch (type) {
+      case 'own_wallet':
+        return 'Perform transactions from your own wallet'
+      case 'other_wallet':
+        return 'Send to another wallet'
+      case 'bank_account':
+        return 'Transfer to bank account'
+      default:
+        return 'Transaction'
+    }
+  }
+  
+
   return (
     <AuthProvider>
     <div className="container mx-auto p-4 max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle>
-            {params.type === 'own_wallet' && 'Own Wallet Transaction'}
-            {params.type === 'other_wallet' && 'Other Wallet Transaction'}
-            {params.type === 'bank_account' && 'Bank Account Transaction'}
+          {getTitle()}
           </CardTitle>
           <CardDescription>
-            {params.type === 'own_wallet' && 'Perform transactions from your own wallet'}
-            {params.type === 'other_wallet' && 'Send to another wallet'}
-            {params.type === 'bank_account' && 'Transfer to bank account'}
+          {getCardDescription()}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -155,21 +181,38 @@ useEffect(() => {
                 </div>
               </div>
 
-              {(params.type === 'other_wallet' || params.type === 'bank_account') && (
+              {(type === 'own_wallet' || type === 'other_wallet' || type === 'bank_account') && (
                 <div>
                   <Label htmlFor="receiverInfo">
-                    {params.type === 'other_wallet' ? 'Receiver Phone Number' : 'Bank Account/IBAN'}
+                    {/* {params.type === 'other_wallet' ? 'Receiver Phone Number' : 'Bank Account/IBAN'} */}
+                    {  type === 'other_wallet' 
+                          ? 'Enter receiver phone number' 
+                          : type === 'own_wallet'
+                          ? 'Enter your own phone number'
+                          : type === 'bank_account'
+                          ? 'Enter bank account or IBAN'
+                          : 'Enter account details'}
+
                   </Label>
                   <Input
                     id="receiverInfo"
                     value={receiverInfo}
                     onChange={(e) => setReceiverInfo(e.target.value)}
                     required
+                    // placeholder={
+                    //   params.type === 'other_wallet' 
+                    //     ? 'Enter receiver phone number' 
+                    //     : 'Enter bank account or IBAN'
+                    // }
                     placeholder={
-                      params.type === 'other_wallet' 
-                        ? 'Enter receiver phone number' 
-                        : 'Enter bank account or IBAN'
-                    }
+                        type === 'other_wallet' 
+                          ? 'Enter receiver phone number' 
+                          : type === 'own_wallet'
+                          ? 'Enter your own phone number'
+                          : type === 'bank_account'
+                          ? 'Enter bank account or IBAN'
+                          : 'Enter account details'
+                      }
                   />
                 </div>
               )}
